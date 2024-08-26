@@ -74,6 +74,10 @@ namespace ConferenceAPI.Controllers
         public IActionResult DeleteSpeaker(int id)
         {
             var item = _context.Speakers.FirstOrDefault(i => i.Id == id);
+            if(id == 0)
+            {
+                return StatusCode(400, "Speaker's id can't be 0");
+            }
             if (item == null)
             {
                 return NotFound();
@@ -81,7 +85,6 @@ namespace ConferenceAPI.Controllers
             _context.Speakers.Remove(item);
             _context.SaveChanges();
             return StatusCode(204, "Speaker has been deleted!");
-            
         }
     }
 }
