@@ -31,15 +31,6 @@ namespace ConferenceAPI.Controllers
             }
         }
 
-        //[HttpGet]
-        //public List<Speaker> GetSpeakers(SerbanCorodescuDbContext serbanCorodescuDbContext)
-        //{
-        //    List<Speaker> speakers = new List<Speaker>();
-        //    speakers = serbanCorodescuDbContext.Speakers.ToList();
-        //    return speakers;
-        //}
-        //
-
         [HttpPost]
         public ActionResult AddSpeaker([FromBody] SpeakerRequest speaker)
         {
@@ -47,33 +38,34 @@ namespace ConferenceAPI.Controllers
             {
                 return BadRequest();
             }
-            //if(speaker.Name == null && National)
 
             Speaker s = new Speaker(speaker.Name, speaker.Nationality, speaker.Rating, speaker.Image, speaker.PhoneNumber, speaker.Email);
+            if(speaker.Name == null && speaker.Nationality == null && speaker.Rating == 0 && speaker.PhoneNumber == null && speaker.Email == null){
+                return StatusCode(400, "Some of the speaker's fields are empty!");
+            }
 
-            _context.Speakers.Add(s);
+        _context.Speakers.Add(s);
             _context.SaveChanges();
             return StatusCode(200, "Speaker has been added!");
         }
 
         [HttpPut("{id}")]
-        public ActionResult UpdateSpeaker(int id, [FromBody] SpeakerRequest speaker)
+        public ActionResult UpdateSpeaker(int id, [FromBody] int Rating)
         {
-            if (speaker == null)
+            if (id == null)
             {
                 return BadRequest();
             }
-            Speaker s = new Speaker(speaker.Rating);
             var existingItem = _context.Speakers.FirstOrDefault(i => i.Id == id);
             if (existingItem == null)
             {
                 return NotFound();
             }
-            if(s.Rating == 0)
+            if(Rating == 0)
             {
                 return StatusCode(201, "Rating is 0");
             }
-            existingItem.Rating = s.Rating;
+            existingItem.Rating = Rating;
             _context.SaveChanges();
             return StatusCode(200, "Speaker's rating has been updated!");
         }

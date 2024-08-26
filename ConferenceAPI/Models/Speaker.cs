@@ -28,9 +28,6 @@ public partial class Speaker
 
     public Speaker() {}
 
-    public Speaker(decimal Rating) {
-        this.Rating = Rating;
-    }
 
     public Speaker(string Name, string Nationality,
         decimal Rating, byte[] Image, string PhoneNumber, string Email)
