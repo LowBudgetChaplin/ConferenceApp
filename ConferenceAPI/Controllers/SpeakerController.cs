@@ -38,6 +38,7 @@ namespace ConferenceAPI.Controllers
         //    speakers = serbanCorodescuDbContext.Speakers.ToList();
         //    return speakers;
         //}
+        //
 
         [HttpPost]
         public ActionResult AddSpeaker([FromBody] SpeakerRequest speaker)
