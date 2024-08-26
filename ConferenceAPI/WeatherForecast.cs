@@ -10,6 +10,8 @@ namespace ConferenceAPI
 
         public string? Summary { get; set; }
 
+        public int nr = 0;
+
         public WeatherForecast(int temperature)
         {
             TemperatureC = temperature;
