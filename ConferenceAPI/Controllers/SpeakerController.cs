@@ -81,7 +81,7 @@ namespace ConferenceAPI.Controllers
             _context.Speakers.Remove(item);
             _context.SaveChanges();
             return StatusCode(204, "Speaker has been deleted!");
-            //
+            
         }
     }
 }
