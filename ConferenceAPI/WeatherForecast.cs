@@ -11,8 +11,7 @@ namespace ConferenceAPI
         public string? Summary { get; set; }
 
         public int nr = 0;
-        public int nr2 = 0;
-        //
+
 
         public WeatherForecast(int temperature)
         {

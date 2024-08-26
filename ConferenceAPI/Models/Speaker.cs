@@ -5,6 +5,7 @@ namespace ConferenceAPI.Models;
 
 public partial class Speaker
 {
+
     public int Id { get; set; }
 
     public string Name { get; set; } = null!;
@@ -22,4 +23,25 @@ public partial class Speaker
     public virtual ICollection<ConferenceXspeaker> ConferenceXspeakers { get; set; } = new List<ConferenceXspeaker>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
+
+
+
+    public Speaker() {}
+
+    public Speaker(decimal Rating) {
+        this.Rating = Rating;
+    }
+
+    public Speaker(string Name, string Nationality,
+        decimal Rating, byte[] Image, string PhoneNumber, string Email)
+    {
+        this.Name = Name;
+        this.Nationality = Nationality;
+        this.Rating = Rating;
+        this.Image = Image;
+        this.PhoneNumber = PhoneNumber;
+        this.Email = Email;
+    }
+
+
 }
