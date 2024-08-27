@@ -3,8 +3,9 @@ using System.Collections.Generic;
 
 namespace ConferenceAPI.Models;
 
-public partial class EmailNotification
+public partial class EmailNotification : Notification
 {
+
     public int Id { get; set; }
 
     public string To { get; set; } = null!;
@@ -13,7 +14,11 @@ public partial class EmailNotification
 
     public string Subject { get; set; } = null!;
 
-    public string Message { get; set; } = null!;
-
-    public DateTime SentDate { get; set; }
+    public EmailNotification(string to, string cc, string? message, string subject, DateTime? sentDate, string participantTemplate, string speakerTemplate) 
+        : base(message, sentDate, participantTemplate, speakerTemplate)
+    {
+        To = to;
+        Cc = cc;
+        Subject = subject;
+    }
 }
