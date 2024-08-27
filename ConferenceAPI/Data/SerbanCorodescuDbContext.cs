@@ -38,8 +38,6 @@ public partial class SerbanCorodescuDbContext : DbContext
 
     public virtual DbSet<Feedback> Feedbacks { get; set; }
 
-    public virtual DbSet<FeedbackDeleted> FeedbackDeleteds { get; set; }
-
     public virtual DbSet<Location> Locations { get; set; }
 
     public virtual DbSet<Log> Logs { get; set; }
@@ -194,15 +192,6 @@ public partial class SerbanCorodescuDbContext : DbContext
                 .HasForeignKey(d => d.SpeakerId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("fk_Speaker_Feedback");
-        });
-
-        modelBuilder.Entity<FeedbackDeleted>(entity =>
-        {
-            entity
-                .HasNoKey()
-                .ToTable("FeedbackDeleted");
-
-            entity.Property(e => e.AttendeeEmail).HasMaxLength(255);
         });
 
         modelBuilder.Entity<Location>(entity =>

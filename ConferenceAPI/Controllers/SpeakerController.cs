@@ -4,6 +4,7 @@ using ConferenceAPI.Models;
 using ConferenceAPI.Requests;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace ConferenceAPI.Controllers
@@ -24,11 +25,11 @@ namespace ConferenceAPI.Controllers
         {
             if (name == null)
             {
-                return _context.Speakers.ToList();
+                return _context.Speakers.Include(s => s.Feedbacks).Include(s => s.ConferenceXspeakers).ToList();
             }
             else
             {
-                return _context.Speakers.Where(s => s.Name.ToLower().Contains(name.ToLower())).ToList();
+                return _context.Speakers.Include(s=>s.Feedbacks).Include(s=>s.ConferenceXspeakers).Where(s => s.Name.ToLower().Contains(name.ToLower())).ToList();
             }
         }
 
@@ -40,33 +41,45 @@ namespace ConferenceAPI.Controllers
                 return BadRequest();
             }
 
-
             string emailRegexPattern = @"^[a-zA-Z0-9._%-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
             if (!Regex.IsMatch(speaker.Email, emailRegexPattern))
             {
-                return StatusCode(400, "Email format incorrect");
+                return StatusCode(400, "Email format is incorrect");
             }
 
-
-            string phoneRegexPattern = @"^\+?[1-9]\d{1,14}$";
+            string phoneRegexPattern = @"^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$";
             if (!Regex.IsMatch(speaker.PhoneNumber, phoneRegexPattern))
             {
-                return StatusCode(400, "Phone number incorrect");
+                return StatusCode(400, "Phone number format is incorrect");
+            }
+
+            var existingSpeaker = _context.Speakers
+                .FirstOrDefault(s => s.Email == speaker.Email || s.PhoneNumber == speaker.PhoneNumber);
+            if (existingSpeaker != null)
+            {
+                return StatusCode(400, "A speaker with this email or phone number already exists");
             }
 
 
-            if (string.IsNullOrEmpty(speaker.Name) || string.IsNullOrEmpty(speaker.Nationality) || speaker.Rating == 0 ||
+            if (string.IsNullOrEmpty(speaker.Name) || string.IsNullOrEmpty(speaker.Nationality) ||
                 string.IsNullOrEmpty(speaker.PhoneNumber) || string.IsNullOrEmpty(speaker.Email))
             {
-                return StatusCode(400, "Some of the speaker's fields are empty!");
+                return StatusCode(400, "Speaker's fields are empty");
             }
+
+            if (speaker.Rating < 0 || speaker.Rating > 10)
+            {
+                return StatusCode(400, "The rating is not valid");
+            }
+
 
             Speaker s = new Speaker(speaker.Name, speaker.Nationality, speaker.Rating, speaker.Image, speaker.PhoneNumber, speaker.Email);
             _context.Speakers.Add(s);
             _context.SaveChanges();
 
-            return StatusCode(200, "Speaker has been added");
+            return StatusCode(201, "Speaker has been added");
         }
+
 
 
         [HttpPut("{id}")]
@@ -83,14 +96,14 @@ namespace ConferenceAPI.Controllers
             }
             if(Rating == 0)
             {
-                return StatusCode(201, "Rating can't be 0");
+                return StatusCode(204, "Rating can't be 0");
             }
             existingItem.Rating = Rating;
             _context.SaveChanges();
             return StatusCode(200, "Speaker's rating has been updated");
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("deleteSpeaker/{id}")]
         public IActionResult DeleteSpeaker(int id)
         {
             var speaker = _context.Speakers.FirstOrDefault(i => i.Id == id);
@@ -141,25 +154,20 @@ namespace ConferenceAPI.Controllers
                 return BadRequest("Speaker id can't be 0");
             }
 
-            var speaker = _context.Speakers.FirstOrDefault(s => s.Id == id);
+            var speaker = _context.Speakers.Include(s => s.Feedbacks).Include(s => s.ConferenceXspeakers).FirstOrDefault(s => s.Id == id);
             if (speaker == null)
             {
                 return NotFound("Speaker not found");
             }
 
-
-            var conferences = _context.ConferenceXspeakers.Where(c => c.SpeakerId == id).ToList();
-            var feedbacks = _context.Feedbacks.Where(f => f.SpeakerId == id).ToList();
-
-
-            if (conferences.Any())
+            if (speaker.ConferenceXspeakers.Any())
             {
-                _context.Conferences.RemoveRange(conferences);
+                _context.ConferenceXspeakers.RemoveRange(speaker.ConferenceXspeakers);
             }
 
-            if (feedbacks.Any())
+            if (speaker.Feedbacks.Any())
             {
-                _context.Feedbacks.RemoveRange(feedbacks);
+                _context.Feedbacks.RemoveRange(speaker.Feedbacks);
             }
 
 
@@ -168,7 +176,5 @@ namespace ConferenceAPI.Controllers
 
             return StatusCode(204, "Speaker's rows have been delete");
         }
-
-
     }
 }

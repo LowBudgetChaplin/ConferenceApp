@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace ConferenceAPI.Models;
 
@@ -19,5 +20,14 @@ public partial class Feedback
 
     public virtual Conference Conference { get; set; } = null!;
 
+    [JsonIgnore]
     public virtual Speaker Speaker { get; set; } = null!;
+    public Feedback(string AttendeeEmail, int ConferenceId, int SpeakerId, decimal? Rating, string Message)
+    {
+        this.AttendeeEmail = AttendeeEmail;
+        this.ConferenceId = ConferenceId;
+        this.SpeakerId = SpeakerId;
+        this.Rating = Rating;
+        this.Message = Message;
+    }
 }
