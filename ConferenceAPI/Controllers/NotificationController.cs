@@ -22,27 +22,26 @@ namespace ConferenceAPI.Controllers
         [HttpPost("SendParticipantEmailNotification")]
         public IActionResult SendParticipantEmailNotification([FromBody] NotificationRequest request)
         {
-
-            return Ok("Participant email notification sent.");
+            return Ok("Participant email notification sent");
         }
 
         [HttpPost("SendSpeakerEmailNotification")]
         public IActionResult SendSpeakerEmailNotification([FromBody] NotificationRequest request)
         {
 
-            return Ok("Speaker email notification sent.");
+            return Ok("Speaker email notification sent");
         }
 
         [HttpPost("SendParticipantSmsNotification")]
         public IActionResult SendParticipantSmsNotification([FromBody] NotificationRequest request)
         {
-            return Ok("Participant SMS notification sent.");
+            return Ok("Participant SMS notification sent");
         }
 
         [HttpPost("SendSpeakerSmsNotification")]
         public IActionResult SendSpeakerSmsNotification([FromBody] NotificationRequest request)
         {
-            return Ok("Speaker SMS notification sent.");
+            return Ok("Speaker SMS notification sent");
         }
 
     }
