@@ -37,39 +37,42 @@ namespace ConferenceAPI.Controllers
             {
                 return NotFound("Attendee not found");
             }
-                var speakers = string.Join(",", _context.Speakers
-                    .Where(s => s.Id == request.ConferenceId)
-                    .Select(s => s.Name));
 
-                var to = _context.ConferenceXattendees
-                .Where(a => a.Id == request.ReceiverId)
-                .Select(a => a.AttendeeEmail)
-                .FirstOrDefault();
+             var speakers = string.Join(", ", _context.Speakers
+            .Where(s => s.Id == request.ConferenceId)
+            .Select(s => s.Name));
+
+            // var to = _context.ConferenceXattendees
+            //.Where(a => a.Id == request.ReceiverId)
+            //.Select(a => a.AttendeeEmail)
+            //.FirstOrDefault();
 
 
 
-                var emailNotification = new EmailNotification(
-                    attendeeName: "Madalina Popa",
-                    conferenceName: conference.Name,
-                    speakerNames: speakers,
-                    location: conference.Location.Address,
-                    to: to,
-                    cc: "",
-                    subject: "Do not respond"
-                );
+            var emailNotification = new EmailNotification(
+                attendeeName: attendee.Name,
+                conferenceName: conference.Name,
+                speakerNames: speakers,
+                date: conference.StartDate,
+                location: conference.Location.Address,
+                to: attendee.AttendeeEmail,
+                cc: "",
+                subject: "Do not respond"
+            );
 
-                try
-                {
-                    _emailService.Send(emailNotification);
-                    _context.EmailNotifications.Add(emailNotification);
-                    _context.SaveChanges();
+            try
+            {
+                _manager.SendNotification(emailNotification);
+                _context.EmailNotifications.Add(emailNotification);
+                _context.SaveChanges();
 
-                    return Ok("Participant email notification sent");
-                }
-                catch (Exception ex)
-                {
-                    return StatusCode(400, "Error");
-                }
+                return Ok("Participant email notification sent");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, "Error");
+            }
+            
         }
 
         [HttpPost("SendSpeakerEmailNotification")]
