@@ -2,8 +2,9 @@
 {
     public class NotificationRequest
     {
-        public string To { get; set; }
-        public string Name { get; set; }
+        //public string To { get; set; }
+        //public string Name { get; set; }
+        public int ReceiverId { get; set; }
         public int ConferenceId { get; set; }
 
     }

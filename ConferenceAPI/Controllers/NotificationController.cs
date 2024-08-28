@@ -1,35 +1,81 @@
-﻿using Azure.Core;
-using ConferenceAPI.Data;
+﻿using ConferenceAPI.Data;
+using ConferenceAPI.Models;
 using ConferenceAPI.Requests;
 using ConferenceAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace ConferenceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NotificationController : Controller
+    public class NotificationController : ControllerBase
     {
-        public SerbanCorodescuDbContext _context { get; set; }
-        public NotificationManager _manager { get; set; }
+        private readonly SerbanCorodescuDbContext _context;
+        private readonly NotificationManager _manager;
+        private readonly EmailService _emailService;
 
-        public NotificationController(SerbanCorodescuDbContext context, NotificationManager manager)
+        public NotificationController(SerbanCorodescuDbContext context)
         {
             _context = context;
-            _manager = manager;
+            _manager = new NotificationManager();
         }
 
         [HttpPost("SendParticipantEmailNotification")]
         public IActionResult SendParticipantEmailNotification([FromBody] NotificationRequest request)
         {
-            return Ok("Participant email notification sent");
+            var conference = _context.Conferences.Include(c => c.Location).FirstOrDefault(c => c.Id == request.ConferenceId);
+            if (conference == null)
+            {
+                return NotFound("Conference not found");
+            }
+
+            var attendee = _context.ConferenceXattendees.FirstOrDefault(a => a.Id == request.ReceiverId);
+            if (attendee == null)
+            {
+                return NotFound("Attendee not found");
+            }
+                var speakers = string.Join(",", _context.Speakers
+                    .Where(s => s.Id == request.ConferenceId)
+                    .Select(s => s.Name));
+
+                var to = _context.ConferenceXattendees
+                .Where(a => a.Id == request.ReceiverId)
+                .Select(a => a.AttendeeEmail)
+                .FirstOrDefault();
+
+
+
+                var emailNotification = new EmailNotification(
+                    attendeeName: "Madalina Popa",
+                    conferenceName: conference.Name,
+                    speakerNames: speakers,
+                    location: conference.Location.Address,
+                    to: to,
+                    cc: "",
+                    subject: "Do not respond"
+                );
+
+                try
+                {
+                    _emailService.Send(emailNotification);
+                    _context.EmailNotifications.Add(emailNotification);
+                    _context.SaveChanges();
+
+                    return Ok("Participant email notification sent");
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(400, "Error");
+                }
         }
 
         [HttpPost("SendSpeakerEmailNotification")]
         public IActionResult SendSpeakerEmailNotification([FromBody] NotificationRequest request)
         {
-
-            return Ok("Speaker email notification sent");
+            return Ok("Email sent");
         }
 
         [HttpPost("SendParticipantSmsNotification")]
@@ -43,6 +89,5 @@ namespace ConferenceAPI.Controllers
         {
             return Ok("Speaker SMS notification sent");
         }
-
     }
 }
