@@ -15,8 +15,8 @@ namespace ConferenceAPI.Services
                 {
                     var message = MessageResource.Create(
                         body: smsNotification.Message,
-                        from: new PhoneNumber("+19548668985"),
-                        to: new PhoneNumber("+400757992652")
+                        from: new PhoneNumber("+16504605145"),
+                        to: smsNotification.PhoneNumber
                     );
 
                     Console.WriteLine($"Message SID: {message.Sid}");

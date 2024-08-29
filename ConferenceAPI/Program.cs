@@ -3,8 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Twilio;
 
 var builder = WebApplication.CreateBuilder(args);
-var accountSid = "ACb5cb05bbff0bfd2c02b7a632313c5708";
-var authToken = "c1b8bf130e942b294c0ffff3f2c417e3";
+var accountSid = Environment.GetEnvironmentVariable("ACCOUNT_SID");
+var authToken = Environment.GetEnvironmentVariable("AUTH_TOKEN");
+
+if(accountSid == null && authToken == null)
+{
+    throw new InvalidOperationException("Twilio Account SID and Auth Token cannot be null");
+}
 
 TwilioClient.Init(accountSid, authToken);
 // Add services to the container.

@@ -30,6 +30,16 @@ public partial class Conference
     public virtual ICollection<ConferenceXspeaker> ConferenceXspeakers { get; set; } = new List<ConferenceXspeaker>();
 
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
-
     public virtual Location Location { get; set; } = null!;
+
+    public Conference(int conferenceTypeId, int locationId, string organizerEmail, int categoryId, DateTime startDate, DateTime endDate, string name)
+    {
+        ConferenceTypeId = conferenceTypeId;
+        LocationId = locationId;
+        OrganizerEmail = organizerEmail;
+        CategoryId = categoryId;
+        StartDate = startDate;
+        EndDate = endDate;
+        Name = name;
+    }
 }

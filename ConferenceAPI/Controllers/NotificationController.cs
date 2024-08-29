@@ -154,11 +154,12 @@ namespace ConferenceAPI.Controllers
                 return NotFound("Attendee not found");
             }
 
+            var phoneNumber = attendee.PhoneNumber;
+            var message = "These are your conference details";
+
             var smsNotification = new Smsnotification(
-                phoneNumber: "+40757992652",
-                message: "Salut!!",
-                participantTemplate: "ParticipantTemplate",
-                speakerTemplate: string.Empty
+                phoneNumber: phoneNumber,
+                message: message
             );
 
             try
@@ -175,7 +176,40 @@ namespace ConferenceAPI.Controllers
         [HttpPost("SendSpeakerSmsNotification")]
         public IActionResult SendSpeakerSmsNotification([FromBody] NotificationRequest request)
         {
-            return Ok("Speaker SMS notification sent");
+            var conference = _context.Conferences.Include(c => c.Location).FirstOrDefault(c => c.Id == request.ConferenceId);
+            if (conference == null)
+            {
+                return NotFound("Conference not found");
+            }
+
+            var mainSpeaker = _context.ConferenceXspeakers
+                .Include(cs => cs.Speaker)
+                .Where(cs => cs.ConferenceId == request.ConferenceId && cs.IsMainSpeaker == true)
+                .Select(cs => cs.Speaker)
+                .FirstOrDefault();
+
+            if (mainSpeaker == null)
+            {
+                return NotFound("Main speaker not found for the conference");
+            }
+
+            var phoneNumber = mainSpeaker.PhoneNumber;
+            var message = "These are your conference details";
+
+            var smsNotification = new Smsnotification(
+                phoneNumber: phoneNumber,
+                message: message
+            );
+
+            try
+            {
+                _manager.SendNotification(smsNotification);
+                return Ok("Speaker SMS notification sent");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, "Error message: " + ex);
+            }
         }
     }
 }
