@@ -42,11 +42,14 @@ namespace ConferenceAPI.Controllers
             .Where(s => s.Id == request.ConferenceId)
             .Select(s => s.Name));
 
-            // var to = _context.ConferenceXattendees
-            //.Where(a => a.Id == request.ReceiverId)
-            //.Select(a => a.AttendeeEmail)
-            //.FirstOrDefault();
-
+            var to = _context.ConferenceXattendees
+           .Where(a => a.Id == request.ReceiverId)
+           .Select(a => a.AttendeeEmail)
+           .FirstOrDefault();
+            if(to == null)
+            {
+                return NotFound("Receiver can't be null");
+            }
 
 
             var emailNotification = new EmailNotification(
@@ -70,7 +73,7 @@ namespace ConferenceAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, "Error");
+                return StatusCode(400, "Error message: " + ex);
             }
             
         }

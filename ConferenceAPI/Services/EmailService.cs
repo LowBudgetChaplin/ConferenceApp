@@ -31,13 +31,13 @@ namespace ConferenceAPI.Services
                         IsBodyHtml = false
                     };
 
-                    mailMessage.To.Add("serban.corodescu@totalsoft.ro");
+                    mailMessage.To.Add(emailNotification.To);
 
                     try
                     {
                         client.Send(mailMessage);
                         emailNotification.SentDate = DateTime.Now;
-                        Console.WriteLine("Email sent ");
+                        Console.WriteLine("Email sent");
                     }
 
                     catch (Exception ex)
