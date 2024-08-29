@@ -38,7 +38,7 @@ namespace ConferenceAPI.Controllers
                 return NotFound("Attendee not found");
             }
 
-             var speakers = string.Join(", ", _context.Speakers
+            var speakers = string.Join(", ", _context.Speakers
             .Where(s => s.Id == request.ConferenceId)
             .Select(s => s.Name));
 
@@ -53,7 +53,7 @@ namespace ConferenceAPI.Controllers
 
 
             var emailNotification = new EmailNotification(
-                attendeeName: attendee.Name,
+                participantName: attendee.Name,
                 conferenceName: conference.Name,
                 speakerNames: speakers,
                 date: conference.StartDate,
@@ -81,13 +81,95 @@ namespace ConferenceAPI.Controllers
         [HttpPost("SendSpeakerEmailNotification")]
         public IActionResult SendSpeakerEmailNotification([FromBody] NotificationRequest request)
         {
-            return Ok("Email sent");
+            var conference = _context.Conferences.Include(c => c.Location).FirstOrDefault(c => c.Id == request.ConferenceId);
+            if (conference == null)
+            {
+                return NotFound("Conference not found");
+            }
+
+            var attendee = _context.ConferenceXattendees.FirstOrDefault(a => a.Id == request.ReceiverId);
+            if (attendee == null)
+            {
+                return NotFound("Attendee not found");
+            }
+
+            var speaker = string.Join(", ", _context.Speakers
+            .Where(s => s.Id == request.ConferenceId)
+            .Select(s => s.Name));
+
+            var to = _context.ConferenceXattendees
+           .Where(a => a.Id == request.ReceiverId)
+           .Select(a => a.AttendeeEmail)
+           .FirstOrDefault();
+            if (to == null)
+            {
+                return NotFound("Receiver can't be null");
+            }
+
+            var mainSpeaker = _context.ConferenceXspeakers
+            .Include(cs => cs.Speaker)
+            .Where(cs => cs.ConferenceId == request.ConferenceId && cs.IsMainSpeaker == true)
+            .Select(cs => new{
+                cs.Speaker.Name,
+                cs.Speaker.Email
+            })
+            .FirstOrDefault();
+
+            if (mainSpeaker == null)
+            {
+                return NotFound("Main speaker not found for the conference");
+            }
+
+
+            var emailNotification = new EmailNotification(
+                speakerName: speaker,
+                conferenceName: conference.Name,
+                date: conference.StartDate,
+                location: conference.Location.Address,
+                to: mainSpeaker.Email,
+                cc: attendee.AttendeeEmail,
+                subject: "Conference confirmation"
+            );
+
+            try
+            {
+                _manager.SendNotification(emailNotification);
+                _context.EmailNotifications.Add(emailNotification);
+                _context.SaveChanges();
+
+                return Ok("Speaker email notification sent");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, "Error message: " + ex);
+            }
         }
 
         [HttpPost("SendParticipantSmsNotification")]
         public IActionResult SendParticipantSmsNotification([FromBody] NotificationRequest request)
         {
-            return Ok("Participant SMS notification sent");
+            var attendee = _context.ConferenceXattendees.FirstOrDefault(a => a.Id == request.ReceiverId);
+            if (attendee == null)
+            {
+                return NotFound("Attendee not found");
+            }
+
+            var smsNotification = new Smsnotification(
+                phoneNumber: "+40757992652",
+                message: "Salut!!",
+                participantTemplate: "ParticipantTemplate",
+                speakerTemplate: string.Empty
+            );
+
+            try
+            {
+                _manager.SendNotification(smsNotification);
+                return Ok("Participant SMS notification sent");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(400, "Error message: " + ex);
+            }
         }
 
         [HttpPost("SendSpeakerSmsNotification")]

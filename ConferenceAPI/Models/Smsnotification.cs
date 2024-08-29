@@ -1,21 +1,28 @@
 ﻿using System;
-using System.Collections.Generic;
 
-namespace ConferenceAPI.Models;
-
-public partial class Smsnotification : Notification
+namespace ConferenceAPI.Models
 {
-    public string PhoneNumber { get; set; } = null!;
-
-    public Smsnotification() : base(null, string.Empty, string.Empty) { }
-
-    public Smsnotification(string phoneNumber, string? message, string participantTemplate, string speakerTemplate)
-        : base(message, participantTemplate, speakerTemplate)
+    public partial class Smsnotification : Notification
     {
-        PhoneNumber = phoneNumber;
-    }
+        public string PhoneNumber { get; set; } = null!;
 
-    //constructor fara parametri pt entity framework
-    //constructor with params to create participant sms notification - use template for message  
-    //constructor with params to create speaker sms notification - use template for message  
+        public Smsnotification() : base(null, string.Empty, string.Empty) { }
+
+        public Smsnotification(string phoneNumber, string? message, string participantTemplate, string speakerTemplate)
+            : base(message, participantTemplate, speakerTemplate)
+        {
+            PhoneNumber = phoneNumber;
+        }
+        public Smsnotification(string phoneNumber, string message)
+            : base(message, "ParticipantTemplate", string.Empty)
+        {
+            PhoneNumber = phoneNumber;
+        }
+
+        public Smsnotification(string phoneNumber, string message, bool isSpeaker)
+            : base(message, string.Empty, isSpeaker ? "SpeakerTemplate" : "ParticipantTemplate")
+        {
+            PhoneNumber = phoneNumber;
+        }
+    }
 }

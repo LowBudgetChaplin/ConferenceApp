@@ -15,22 +15,22 @@ namespace ConferenceAPI.Models
 
         public EmailNotification() : base(null, string.Empty, string.Empty) { }
 
-        public EmailNotification(string attendeeName, string conferenceName, string speakerNames, DateTime date ,string location, string to, string cc, string subject)
+        public EmailNotification(string participantName, string conferenceName, string speakerNames, DateTime date ,string location, string to, string cc, string subject)
             : base(null, "Hello, {0}! You have been enrolled in the course {1}. It will be led by {2}, starting on {3} at {4}, located at {5}.", string.Empty)
         {
             To = to;
             Cc = cc;
             Subject = subject;
-            Message = FormatParticipantMessage(attendeeName, conferenceName, speakerNames, date, location);
+            Message = FormatParticipantMessage(participantName, conferenceName, speakerNames, date, location);
         }
 
-        public EmailNotification(string speakerName, string conferenceName, string location, string to, string cc, string subject)
+        public EmailNotification(string speakerName, string conferenceName, DateTime date, string location, string to, string cc, string subject)
             : base(null, string.Empty, "Hello, {0}! You have been assigned as a speaker for the course {1}, scheduled for {2} at {3}, at {4}.")
         {
             To = to;
             Cc = cc;
             Subject = subject;
-            Message = FormatSpeakerMessage(speakerName, conferenceName, location);
+            Message = FormatSpeakerMessage(speakerName, conferenceName, date, location);
         }
     }
 }

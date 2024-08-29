@@ -25,14 +25,14 @@ namespace ConferenceAPI.Services
 
                     var mailMessage = new MailMessage
                     {
-                        From = new MailAddress("luca.cordus@totalsoft.ro"),
+                        From = new MailAddress("serban.corodescu@totalsoft.ro"),
                         Subject = emailNotification.Subject,
                         Body = emailNotification.Message,
                         IsBodyHtml = false
                     };
 
                     mailMessage.To.Add(emailNotification.To);
-
+                    mailMessage.CC.Add(emailNotification.Cc);
                     try
                     {
                         client.Send(mailMessage);
@@ -42,7 +42,7 @@ namespace ConferenceAPI.Services
 
                     catch (Exception ex)
                     {
-                        throw new Exception("Email not sent", ex);
+                        throw new Exception("Email is not sent", ex);
                     }
                 }
             }
