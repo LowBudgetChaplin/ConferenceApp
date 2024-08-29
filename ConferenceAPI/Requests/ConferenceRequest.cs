@@ -1,4 +1,5 @@
 ﻿using ConferenceAPI.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace ConferenceAPI.Requests
 {
@@ -18,6 +19,9 @@ namespace ConferenceAPI.Requests
 
         public string Name { get; set; } = null!;
 
+        public List<int> SpeakerIds { get; set; }
+
+        public ConferenceRequest() { }
 
 
         public ConferenceRequest(int conferenceTypeId, int locationId, string organizerEmail, int categoryId, DateOnly startDate, DateOnly endDate, string name)
@@ -30,6 +34,5 @@ namespace ConferenceAPI.Requests
             EndDate = endDate;
             Name = name;
         }
-
     }
 }

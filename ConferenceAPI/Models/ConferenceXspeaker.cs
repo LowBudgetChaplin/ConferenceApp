@@ -18,4 +18,13 @@ public partial class ConferenceXspeaker
 
     [JsonIgnore]
     public virtual Speaker Speaker { get; set; } = null!;
+
+    public ConferenceXspeaker(int id, int conferenceId, int speakerId, bool? isMainSpeaker)
+    {
+        Id = id;
+        ConferenceId = conferenceId;
+        SpeakerId = speakerId;
+        IsMainSpeaker = isMainSpeaker;
+    }
+
 }
