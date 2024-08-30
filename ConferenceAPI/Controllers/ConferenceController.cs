@@ -20,7 +20,7 @@ namespace ConferenceAPI.Controllers
         }
 
         [HttpPost]
-        public ActionResult AddConference([FromBody] ConfLocConfXSpeakerRequest request)
+        public ActionResult addConference([FromBody] ConfLocConfXSpeakerRequest request)
         {
             if (request.StartDate >= request.EndDate)
             {
@@ -29,7 +29,7 @@ namespace ConferenceAPI.Controllers
             if (request.StartDate < DateTime.Now)
             {
                 return BadRequest("Start date is not valid");
-            }      
+            }
 
             if (request.location.CountyId == 0 || request.location.CityId == 0 || request.location.CountyId == 0)
             {
@@ -63,9 +63,10 @@ namespace ConferenceAPI.Controllers
 
             var speakers = _context.Speakers.Where(s => request.speakers.Select(speaker => speaker.SpeakerId).ToList().Contains(s.Id)).ToList();
 
-            foreach(ConferenceXSpeakerRequest speaker in request.speakers)
+            foreach (ConferenceXSpeakerRequest speaker in request.speakers)
             {
-                if(!speakers.Any(s=>s.Id == speaker.SpeakerId)){
+                if (!speakers.Any(s => s.Id == speaker.SpeakerId))
+                {
                     return BadRequest("Speaker doesn't exist");
                 }
             }
@@ -73,7 +74,7 @@ namespace ConferenceAPI.Controllers
 
             Location location = _context.Locations.FirstOrDefault(l => l.Latitude == request.location.Latitude && l.Longitude == request.location.Longitude);
 
-            if(location == null)
+            if (location == null)
             {
                 location = new Location
                 (
@@ -102,8 +103,8 @@ namespace ConferenceAPI.Controllers
             };
 
 
-           
-            foreach(ConferenceXSpeakerRequest speakerRequest in request.speakers)
+
+            foreach (ConferenceXSpeakerRequest speakerRequest in request.speakers)
             {
                 ConferenceXspeaker conferenceXspeaker = new ConferenceXspeaker
                 {
@@ -118,26 +119,64 @@ namespace ConferenceAPI.Controllers
             return Ok(newConference);
         }
 
+
+
         [HttpPost("attendConference")]
         public ActionResult attendConference([FromBody] ConfXAttendeesRequest request)
         {
-             
-                var conference = _context.Conferences.Find(request.ConferenceId);
-                if (conference == null)
-                {
-                    return NotFound("Conference not found");
-                }
 
-          
-                var attendee = _context.ConferenceXattendees.Find();
-                if (attendee == null)
-                {
-                    return NotFound("Attendee not found");
-                }
-
-   
-
-                
+            Conference conference = _context.Conferences.Find(request.ConferenceId);
+            if (conference == null)
+            {
+                return NotFound("Conference not found");
             }
+
+            DictionaryStatus status = _context.DictionaryStatuses.Find(request.StatusId);
+            if (status == null)
+            {
+                return BadRequest("Invalid status ID.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.AttendeeEmail) ||
+               string.IsNullOrWhiteSpace(request.Name) ||
+               string.IsNullOrWhiteSpace(request.PhoneNumber))
+            {
+                return BadRequest("Attendee information is incomplete");
+            }
+
+
+            ConferenceXattendee existingRecord = _context.ConferenceXattendees
+            .FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId && ca.AttendeeEmail == request.AttendeeEmail);
+
+            if (existingRecord != null)
+            {
+                if (existingRecord.StatusId == request.StatusId)
+                {
+                    return Ok("The status for this conference is already marked");
+                }
+                else
+                {
+                    existingRecord.StatusId = request.StatusId;
+                    _context.SaveChanges();
+                    return Ok("Attendance status has been updated");
+                }
+            }
+            else
+            {
+               var conferenceXAttendee = new ConferenceXattendee { 
+                    AttendeeEmail = request.AttendeeEmail,
+                    ConferenceId = request.ConferenceId,
+                    StatusId = request.StatusId,
+                    Name = request.Name,
+                    PhoneNumber = request.PhoneNumber
+                };
+
+                _context.ConferenceXattendees.Add(conferenceXAttendee);
+                _context.SaveChanges();
+
+                return Ok(conferenceXAttendee);
+
+            }
+        }
     }
 }
