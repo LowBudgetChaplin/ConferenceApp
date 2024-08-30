@@ -226,7 +226,6 @@ namespace ConferenceAPI.Controllers
             }
 
 
-
             if (existingRecord.StatusId == request.joinedStatusId)
             {
                 return Ok("You have already joined this conference.");
