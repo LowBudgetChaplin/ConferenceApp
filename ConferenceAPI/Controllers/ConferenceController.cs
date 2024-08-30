@@ -134,30 +134,36 @@ namespace ConferenceAPI.Controllers
             DictionaryStatus status = _context.DictionaryStatuses.Find(request.StatusId);
             if (status == null)
             {
-                return BadRequest("Invalid status ID.");
+                return BadRequest("Invalid status id");
             }
 
-            if (request.AttendeeEmail == null|| request.Name == null || request.PhoneNumber == null)
+            //if (request.AttendeeEmail == null|| request.Name == null || request.PhoneNumber == null)
+            //{
+            //    return BadRequest("Attendee information is incomplete");
+            //}
+
+            //if (conference.StartDate <= DateTime.Now)
+            //{
+            //    return BadRequest("Cannot mark attendance. The conference has already started");
+            //}
+
+            ConferenceXattendee existingConference = _context.ConferenceXattendees
+            .FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId);
+
+            if (existingConference != null)
             {
-                return BadRequest("Attendee information is incomplete");
-            }
-
-
-            ConferenceXattendee conferenceStatus = _context.ConferenceXattendees
-            .FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId && ca.AttendeeEmail == request.AttendeeEmail);
-
-            if (conferenceStatus != null)
-            {
-                if (conferenceStatus.StatusId == request.StatusId)
+                if (status.Name.ToLower() == "Attended")
                 {
-                    return Ok("The status for this conference is already marked");
+                    return BadRequest("You already attended to this conference");
                 }
-                else
+                if(status.Name.ToLower() == "Withdrawn")
                 {
-                    conferenceStatus.StatusId = request.StatusId;
+                    return BadRequest("You have withdrawn from this conference");
+                        
+                }
+                    existingConference.StatusId = request.StatusId;
                     _context.SaveChanges();
                     return Ok("Attendance status updated");
-                }
             }
             else
             {
@@ -165,24 +171,21 @@ namespace ConferenceAPI.Controllers
                     AttendeeEmail = request.AttendeeEmail,
                     ConferenceId = request.ConferenceId,
                     StatusId = request.StatusId,
-                    Name = request.Name,
-                    PhoneNumber = request.PhoneNumber
+
                 };
 
                 _context.ConferenceXattendees.Add(conferenceXAttendee);
                 _context.SaveChanges();
-
                 return Ok(conferenceXAttendee);
 
             }
         }
 
 
-
         [HttpPost("withdrawFromConference")]
         public ActionResult withdrawFromConference([FromBody] WithdrawConferenceRequest request)
         {
-         
+
             Conference? conference = _context.Conferences.Find(request.ConferenceId);
             if (conference == null)
             {
@@ -208,5 +211,39 @@ namespace ConferenceAPI.Controllers
             return Ok();
         }
 
+
+
+        [HttpPost("changeToJoin")]
+        public ActionResult changeToJoin([FromBody] JoinConferenceRequest request)
+        {
+            if (request.ConferenceId <= 0 || string.IsNullOrWhiteSpace(request.AttendeeEmail) || request.joinedStatusId <= 0)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            Conference? conference = _context.Conferences.Find(request.ConferenceId);
+            if (conference == null)
+            {
+                return NotFound("Conference not found.");
+            }
+
+            ConferenceXattendee? existingRecord = _context.ConferenceXattendees
+                .FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId &&
+                                      ca.AttendeeEmail == request.AttendeeEmail);
+            if (existingRecord == null)
+            {
+                return NotFound("Attendee not found for the specified conference.");
+            }
+
+            if (existingRecord.StatusId == request.joinedStatusId)
+            {
+                return Ok("You have already joined this conference.");
+            }
+
+            existingRecord.StatusId = request.joinedStatusId;
+            _context.SaveChanges();
+            return Ok();
         }
+
     }
+}
