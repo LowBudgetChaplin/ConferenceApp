@@ -225,6 +225,7 @@ namespace ConferenceAPI.Controllers
                 return NotFound("Attendee not found for the specified conference.");
             }
 
+
             if (existingRecord.StatusId == request.joinedStatusId)
             {
                 return Ok("You have already joined this conference.");
