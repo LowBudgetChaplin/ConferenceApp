@@ -32,6 +32,8 @@ public partial class Conference
     public virtual ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     public virtual Location Location { get; set; } = null!;
 
+    public Conference() { }
+
     public Conference(int conferenceTypeId, int locationId, string organizerEmail, int categoryId, DateTime startDate, DateTime endDate, string name)
     {
         ConferenceTypeId = conferenceTypeId;

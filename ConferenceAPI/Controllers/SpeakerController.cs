@@ -146,6 +146,7 @@ namespace ConferenceAPI.Controllers
 
             return Ok(speaker.Rating);
         }
+
         [HttpDelete("{id}")]
         public IActionResult DeleteSpeakerByConferenceFeedback(int id)
         {

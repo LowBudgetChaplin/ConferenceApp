@@ -31,9 +31,10 @@ public partial class Location
 
     public virtual DictionaryCounty County { get; set; } = null!;
 
-    public Location(int id, string? name, string? code, int countryId, string? address, int countyId, int cityId, decimal latitude, decimal longitude)
+    public Location() { }
+
+    public Location(string? name, string? code, int countryId, string? address, int countyId, int cityId, decimal latitude, decimal longitude)
     {
-        Id = id;
         Name = name;
         Code = code;
         CountryId = countryId;
