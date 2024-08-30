@@ -137,16 +137,6 @@ namespace ConferenceAPI.Controllers
                 return BadRequest("Invalid status id");
             }
 
-            //if (request.AttendeeEmail == null|| request.Name == null || request.PhoneNumber == null)
-            //{
-            //    return BadRequest("Attendee information is incomplete");
-            //}
-
-            //if (conference.StartDate <= DateTime.Now)
-            //{
-            //    return BadRequest("Cannot mark attendance. The conference has already started");
-            //}
-
             ConferenceXattendee existingConference = _context.ConferenceXattendees
             .FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId);
 
