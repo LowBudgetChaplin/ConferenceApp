@@ -137,28 +137,26 @@ namespace ConferenceAPI.Controllers
                 return BadRequest("Invalid status ID.");
             }
 
-            if (string.IsNullOrWhiteSpace(request.AttendeeEmail) ||
-               string.IsNullOrWhiteSpace(request.Name) ||
-               string.IsNullOrWhiteSpace(request.PhoneNumber))
+            if (request.AttendeeEmail == null|| request.Name == null || request.PhoneNumber == null)
             {
                 return BadRequest("Attendee information is incomplete");
             }
 
 
-            ConferenceXattendee existingRecord = _context.ConferenceXattendees
+            ConferenceXattendee conferenceStatus = _context.ConferenceXattendees
             .FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId && ca.AttendeeEmail == request.AttendeeEmail);
 
-            if (existingRecord != null)
+            if (conferenceStatus != null)
             {
-                if (existingRecord.StatusId == request.StatusId)
+                if (conferenceStatus.StatusId == request.StatusId)
                 {
                     return Ok("The status for this conference is already marked");
                 }
                 else
                 {
-                    existingRecord.StatusId = request.StatusId;
+                    conferenceStatus.StatusId = request.StatusId;
                     _context.SaveChanges();
-                    return Ok("Attendance status has been updated");
+                    return Ok("Attendance status updated");
                 }
             }
             else
@@ -178,5 +176,37 @@ namespace ConferenceAPI.Controllers
 
             }
         }
+
+
+
+        [HttpPost("withdrawFromConference")]
+        public ActionResult withdrawFromConference([FromBody] WithdrawConferenceRequest request)
+        {
+         
+            Conference? conference = _context.Conferences.Find(request.ConferenceId);
+            if (conference == null)
+            {
+                return NotFound("Conference not found");
+            }
+
+
+            ConferenceXattendee? attendee = _context.ConferenceXattendees.FirstOrDefault(ca => ca.ConferenceId == request.ConferenceId &&
+                                      ca.AttendeeEmail == request.AttendeeEmail);
+            if (attendee == null)
+            {
+                return NotFound("Attendee not found for the specified conference");
+            }
+
+            if (attendee.StatusId == request.WithdrawnStatusId)
+            {
+                return Ok("You have already withdrawn from this conference");
+            }
+
+
+            attendee.StatusId = request.WithdrawnStatusId;
+            _context.SaveChanges();
+            return Ok();
+        }
+
+        }
     }
-}
