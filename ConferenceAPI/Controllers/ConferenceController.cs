@@ -208,13 +208,13 @@ namespace ConferenceAPI.Controllers
         {
             if (request.ConferenceId <= 0 || string.IsNullOrWhiteSpace(request.AttendeeEmail) || request.joinedStatusId <= 0)
             {
-                return BadRequest("Invalid request data.");
+                return BadRequest("Invalid request data");
             }
 
             Conference? conference = _context.Conferences.Find(request.ConferenceId);
             if (conference == null)
             {
-                return NotFound("Conference not found.");
+                return NotFound("Conference not found");
             }
 
             ConferenceXattendee? existingRecord = _context.ConferenceXattendees
@@ -222,13 +222,13 @@ namespace ConferenceAPI.Controllers
                                       ca.AttendeeEmail == request.AttendeeEmail);
             if (existingRecord == null)
             {
-                return NotFound("Attendee not found for the specified conference.");
+                return NotFound("Attendee not found for the specified conference");
             }
 
 
             if (existingRecord.StatusId == request.joinedStatusId)
             {
-                return Ok("You have already joined this conference.");
+                return Ok("You have already joined this conference");
             }
 
             existingRecord.StatusId = request.joinedStatusId;
