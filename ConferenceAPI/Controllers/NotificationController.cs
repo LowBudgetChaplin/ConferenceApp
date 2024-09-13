@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using Twilio.TwiML.Messaging;
+using Twilio.TwiML.Voice;
 
 namespace ConferenceAPI.Controllers
 {
@@ -81,7 +82,7 @@ namespace ConferenceAPI.Controllers
                 location: conference.Location.Address,
                 to: to,
                 cc: mainSpeaker.Email,
-                subject: "Invitation"
+                subject: "You have been invited to the conference"
             );
 
             try
@@ -154,7 +155,7 @@ namespace ConferenceAPI.Controllers
                 location: conference.Location.Address,
                 to: mainSpeaker.Email,
                 cc: attendee.AttendeeEmail,
-                subject: "Conference confirmation"
+                subject: "You have been assigned as speaker for the conference"
             );
 
             try
@@ -188,7 +189,7 @@ namespace ConferenceAPI.Controllers
 
             var smsNotification = new Smsnotification(
                 phoneNumber: phoneNumber,
-                message: "Participant conference details"
+                message: "You have been invited to the conference"
             );
 
             try
@@ -231,7 +232,7 @@ namespace ConferenceAPI.Controllers
 
             var smsNotification = new Smsnotification(
                 phoneNumber: phoneNumber,
-                message: "Speaker conference details"
+                message: $"You have been assigned as speaker for the conference: {conference.Name}"
             );
 
             try
