@@ -13,10 +13,12 @@ namespace ConferenceAPI.Services
             {
                 try
                 {
+                    var formattedNumber = FormatPhoneNumber(smsNotification.PhoneNumber);
+
                     var message = MessageResource.Create(
                         body: smsNotification.Message,
                         from: new PhoneNumber("+16504605145"),
-                        to: smsNotification.PhoneNumber
+                        to: new PhoneNumber(formattedNumber)
                     );
 
                     Console.WriteLine($"Message SID: {message.Sid}");
@@ -30,5 +32,14 @@ namespace ConferenceAPI.Services
                 }
             }
         }
+        private string FormatPhoneNumber(string phoneNumber)
+        {
+            if (phoneNumber.StartsWith("0"))
+            {
+                return $"+40{phoneNumber.Substring(1)}";
+            }
+            return phoneNumber;
+        }
     }
 }
+

@@ -3,10 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Twilio;
 
 var builder = WebApplication.CreateBuilder(args);
-var accountSid = Environment.GetEnvironmentVariable("ACCOUNT_SID");
-var authToken = Environment.GetEnvironmentVariable("AUTH_TOKEN");
+var twilioConfig = builder.Configuration.GetSection("Twilio");
+var accountSid = twilioConfig["AccountSid"];
+var authToken = twilioConfig["AuthToken"];
 
-if(accountSid == null && authToken == null)
+if (accountSid == null && authToken == null)
 {
     throw new InvalidOperationException("Twilio Account SID and Auth Token cannot be null");
 }

@@ -17,7 +17,8 @@ namespace ConferenceAPI.Controllers
     {
         private readonly SerbanCorodescuDbContext _context;
         private readonly NotificationManager _manager;
-        private readonly EmailService _emailService;
+        //private readonly EmailService _emailService;
+        //private readonly SmsService _smsService;
 
         public NotificationController(SerbanCorodescuDbContext context)
         {
@@ -64,7 +65,7 @@ namespace ConferenceAPI.Controllers
                 .FirstOrDefault();
             }
 
-                var to = _context.ConferenceXattendees
+            var to = _context.ConferenceXattendees
            .Where(a => a.Id == request.ReceiverId && a.ConferenceId == request.ConferenceId)
            .Select(a => a.AttendeeEmail)
            .FirstOrDefault();
@@ -103,57 +104,45 @@ namespace ConferenceAPI.Controllers
         [HttpPost("SendSpeakerEmailNotification")]
         public IActionResult SendSpeakerEmailNotification([FromBody] NotificationRequest request)
         {
-            var conference = _context.Conferences.Include(c => c.Location).FirstOrDefault(c => c.Id == request.ConferenceId);
+            var conference = _context.Conferences.Include(c => c.Location)
+                .FirstOrDefault(c => c.Id == request.ConferenceId);
             if (conference == null)
             {
                 return NotFound("Conference not found");
             }
-            if (conference.Location.Address == null)
+            if (string.IsNullOrEmpty(conference.Location.Address))
             {
                 return NotFound("Address is not specified");
             }
 
-
-            var attendee = _context.ConferenceXattendees.FirstOrDefault(a => a.Id == request.ReceiverId);
+            var attendee = _context.ConferenceXattendees
+                .FirstOrDefault(a => a.Id == request.ReceiverId);
             if (attendee == null)
             {
                 return NotFound("Attendee not found");
             }
 
             var speakerNames = string.Join(", ", _context.ConferenceXspeakers
-            .Where(s => s.ConferenceId == request.ConferenceId)
-            .Select(s => s.Speaker.Name));
+                .Where(s => s.ConferenceId == request.ConferenceId)
+                .Select(s => s.Speaker.Name));
 
-            //Speaker mainSpeaker = _context.ConferenceXspeakers
-            //.Where(s => s.IsMainSpeaker == true && request.ConferenceId == s.ConferenceId)
-            //.Select(s => s.Speaker)
-            //.FirstOrDefault();
+            var speaker = _context.ConferenceXspeakers
+                .Include(cs => cs.Speaker)
+                .Where(cs => cs.ConferenceId == request.ConferenceId && cs.IsMainSpeaker == true)
+                .Select(cs => new { cs.Speaker.Name, cs.Speaker.Email })
+                .FirstOrDefault();
 
-            var to = _context.ConferenceXattendees
-           .Where(a => a.Id == request.ReceiverId)
-           .Select(a => a.AttendeeEmail)
-           .FirstOrDefault();
-            if (to == null)
+            if (speaker == null)
             {
-                return NotFound("Receiver can't be null");
+                return NotFound("Main speaker not found for the specified conference");
             }
 
-            var mainSpeaker = _context.ConferenceXspeakers
-            .Include(cs => cs.Speaker)
-            .Where(cs => cs.ConferenceId == request.ConferenceId && cs.IsMainSpeaker == true)
-            .Select(cs => new{
-                cs.Speaker.Name,
-                cs.Speaker.Email
-            })
-            .FirstOrDefault();
-
-
             var emailNotification = new EmailNotification(
-                speakerName: mainSpeaker.Name,
+                speakerName: speaker.Name,
                 conferenceName: conference.Name,
                 date: conference.StartDate,
                 location: conference.Location.Address,
-                to: mainSpeaker.Email,
+                to: speaker.Email,
                 cc: attendee.AttendeeEmail,
                 subject: "You have been assigned as speaker for the conference"
             );
@@ -168,9 +157,10 @@ namespace ConferenceAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(400, "Error message: " + ex);
+                return StatusCode(500, "Error message: " + ex.Message);
             }
         }
+
 
         [HttpPost("SendParticipantSmsNotification")]
         public IActionResult SendParticipantSmsNotification([FromBody] NotificationRequest request)
@@ -182,7 +172,7 @@ namespace ConferenceAPI.Controllers
             }
 
             var phoneNumber = attendee.PhoneNumber;
-            if (phoneNumber == null)
+            if (string.IsNullOrEmpty(phoneNumber))
             {
                 return BadRequest("Attendee's phone number is missing");
             }
@@ -194,16 +184,18 @@ namespace ConferenceAPI.Controllers
 
             try
             {
-                smsNotification.SentDate = DateTime.Now;
+                _manager.SendNotification(smsNotification);
                 _context.Smsnotifications.Add(smsNotification);
+                smsNotification.SentDate = DateTime.Now;
                 _context.SaveChanges();
-                return Ok("Speaker SMS notification sent");
+                return Ok("Participant SMS notification sent");
             }
             catch (Exception ex)
             {
-                return StatusCode(400, "Error message: " + ex);
+                return StatusCode(400, $"Error message: {ex.Message}");
             }
         }
+
 
         [HttpPost("SendSpeakerSmsNotification")]
         public IActionResult SendSpeakerSmsNotification([FromBody] NotificationRequest request)
@@ -214,29 +206,25 @@ namespace ConferenceAPI.Controllers
                 return NotFound("Conference not found");
             }
 
-            var mainSpeaker = _context.ConferenceXspeakers
+            var speaker = _context.ConferenceXspeakers
                 .Include(cs => cs.Speaker)
-                .Where(cs => cs.ConferenceId == request.ConferenceId && cs.IsMainSpeaker == true)
+                .Where(cs => cs.ConferenceId == request.ConferenceId)
                 .Select(cs => cs.Speaker)
                 .FirstOrDefault();
 
-            if (mainSpeaker == null)
-            {
-                mainSpeaker = _context.ConferenceXspeakers
-                .Where(s => s.ConferenceId == request.ConferenceId)
-                .Select(s => s.Speaker)
-                .FirstOrDefault();
-            }
-
-            var phoneNumber = mainSpeaker.PhoneNumber;
+            var phoneNumber = speaker.PhoneNumber;
 
             var smsNotification = new Smsnotification(
                 phoneNumber: phoneNumber,
                 message: $"You have been assigned as speaker for the conference: {conference.Name}"
             );
 
+            var smsService = new SmsService();
+
+
             try
             {
+                _manager.SendNotification(smsNotification);
                 smsNotification.SentDate = DateTime.Now;
                 _context.Smsnotifications.Add(smsNotification);
                 _context.SaveChanges();
